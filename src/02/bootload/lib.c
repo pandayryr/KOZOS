@@ -79,7 +79,7 @@ int strcmp(const char* s1, const char* s2)
     return 0;
 }
 
-int strcmp(const char* s1, const char* s2, int len)
+int strncmp(const char* s1, const char* s2, int len)
 {
     while((*s1 || *s2) && (len > 0))
     {
@@ -110,6 +110,34 @@ int puts(unsigned char* str)
     {
         putc(*(str++));
     }
+
+    return 0;
+}
+
+int putxval(unsigned long value, int column)
+{
+    char buf[9];
+    char* p;
+
+    p= buf + sizeof(buf) - 1;
+    *(p--) = '\0';
+
+    if(!value && !column)
+    {
+        column++;
+    }
+
+    while(value || column)
+    {
+        *(p--) = "0123456789abcdef"[value & 0xf];
+        value >>= 4;
+        if(column)
+        {
+            column--;
+        }
+    }
+
+    puts(p+1);
 
     return 0;
 }
