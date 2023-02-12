@@ -46,7 +46,7 @@ SECTIONS
     */
     .rodata :
     {
-        _start_rodata = . ;
+        _rodata_start = . ;
         *(.strings)
         *(.rodata)
         *(.rodata.*)
@@ -59,7 +59,7 @@ SECTIONS
     /* 初期値を持つ静的変数などが置かれる領域 */
     .data :
     {
-        _start_data = . ;
+        _data_start = . ;
         *(.data)
         _edata = . ;
     } > data AT> rom
