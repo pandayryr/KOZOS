@@ -4,24 +4,41 @@ OUTPUT_FORMAT("elf32-h8300")
 OUTPUT_ARCH(h8300h)
 ENTRY("_start")
 
+MEMORY
+{
+    /* 
+        メモリの領域定義
+        o: 領域の開始アドレス
+        l: 領域のサイズ
+    */
+    /* ROMの定義 */
+    romall(rx)  : o = 0x000000, l = 0x800000    /* 512KB */
+    vectors(r)  : o = 0x000000, l = 0x000100    /* ROMの先頭アドレス */
+    rom(rx)     : o = 0x000100, l = 0x07ff00
+
+    /* RAMの定義 */
+    ramall(rwx) : o = 0xffbf20, l = 0x004000    /* 16KB */
+    data(rwx)   : o = 0xfffc20, l = 0x000300
+    stack(rw)   : o = 0xffff00, l = 0x000000    /* RAMの終端 */
+}
+
 SECTIONS
 {
-    /* ロケーション・カウンタを0初期化。以降、0x0のアドレスから配置する。 */
-    . = 0x0;
 
     /* .vectorsセクションを作成 */
     .vectors : 
     {
         /* vector.oの.dataセクションの内容を配置する */
         vector.o(.data)
-    }
+    } > vectors
 
     /* CPUが実行する機械語コードが置かれる領域 */
     .text :
     {
-        /* 全てのオブジェクトファイルの.text領域の内容を配置する */
-        *(.text)
-    }
+        _text_start = . ;   /* textセクションの先頭を示すシンボルを配置。シンボル化することにより、プログラムから位置を指定できるようになる。 */
+        *(.text)            /* 全てのオブジェクトファイルの.text領域の内容を配置する */
+        _etext = . ;        /* textセクションの終端を示すシンボルを配置 */
+    } > rom
 
     /*
         rodata：Read Only data
@@ -29,22 +46,30 @@ SECTIONS
     */
     .rodata :
     {
+        _start_rodata = . ;
         *(.strings)
         *(.rodata)
         *(.rodata.*)
-    }
+        _erodata = . ;
+    } > rom
 
-    /* 
-        ロケーション・カウンタを再設定。書き込み可能なRAM上を指定する
-        しかし、現状は動かない。h8witeはRAMに書き込めない + RAM上のデータは電断時にデータが記憶されないため。
-    */
+    /* ロケーション・カウンタを再設定。書き込み可能なRAM上を指定する */
     . = 0xffbf20;
 
     /* 初期値を持つ静的変数などが置かれる領域 */
     .data :
     {
+        _start_data = . ;
         *(.data)
-    }
+        _edata = . ;
+    } > data AT> rom
+        /*
+            .dataセクションに配置された変数の読み書きはRAM上で行うが、その物理アドレスはROM上に配置する
+            具体的には以下の流れ
+                1. 変数の初期値やサイズ情報はROM上に記憶する
+                2. 起動時にプログラムの先頭でROM上の変数の初期値をRAM上にコピーする
+                3. プログラム上での実際の読み書きは、RAM上のアドレスに対して行う。
+        */
 
     /* 
         初期値を持たない静的変数などが置かれる領域。
@@ -52,7 +77,17 @@ SECTIONS
     */
     .bss :
     {
+        _bss_start = . ;
         *(.bss)
         *(COMMON)
-    }
+        _ebss = . ;
+    } > data AT> rom
+
+    . = ALIGN(4);   /* ロケーション・カウンタを4の倍数にする */
+    _end = . ;
+
+    .stack :
+    {
+        _stack = . ;
+    } > stack
 }
