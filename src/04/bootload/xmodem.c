@@ -43,7 +43,7 @@ static int xmodem_read_block(unsigned char block_number, char* buf)
     int i;
 
     block_num = serial_recv_byte(SERIAL_DEFAULT_DEVICE);
-    if(block_num != blocknumber)
+    if(block_num != block_number)
     {
         return -1;
     }
@@ -115,7 +115,7 @@ long xmodem_recv(char* buf)
         {
             if(receiving)
             {
-                return -1:
+                return -1;
             }
         }
     }
