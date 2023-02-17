@@ -18,8 +18,9 @@ MEMORY
 
     /* RAMの定義 */
     ramall(rwx) : o = 0xffbf20, l = 0x004000    /* 16KB */
+    buffer(rwx) : o = 0xffdf20, l = 0x001d00    /* 8KB */
     data(rwx)   : o = 0xfffc20, l = 0x000300
-    stack(rw)   : o = 0xffff00, l = 0x000000    /* RAMの終端 */
+    stack(rw)   : o = 0xffff00, l = 0x000000    /* RAMの終端。H8マイコンでは、スタックはアドレスの値の小さい方向に伸びていく(下方伸長) */
 }
 
 SECTIONS
@@ -55,6 +56,11 @@ SECTIONS
 
     /* ロケーション・カウンタを再設定。書き込み可能なRAM上を指定する */
     . = 0xffbf20;
+
+    .buffer :
+    {
+        _buffer_start = . ;
+    } > buffer
 
     /* 初期値を持つ静的変数などが置かれる領域 */
     .data :
