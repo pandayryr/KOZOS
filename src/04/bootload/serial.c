@@ -138,3 +138,23 @@ int serial_send_byte(int index, unsigned char c)
 
     return 0;
 }
+
+int serial_is_recv_enable(int index)
+{
+    volatile struct h8_3069f_sci* sci = regs[index].sci;
+
+    //SSRレジスタのRDRFビットが立っているかを確認。立っていれば受信したデータが存在する。受信完了時にSCIコントローラが自動でビットを立てる。
+    return (sci->ssr & H8_3069F_SCI_SSR_RDRF);
+}
+
+unsigned char serial_recv_byte(int index)
+{
+    volatile struct h8_3069f_sci* sci = regs[index].sci;
+    unsigned char c;
+
+    while(!serial_is_send_enable(index));
+    c = sci->rdr;                           //シリアルに送信するデータを格納。
+    sci->ssr &= ~H8_3069F_SCI_SSR_RDRF;     //受信完了ビットを落とし、次のデータを受信可能にする。
+
+    return c;
+}
