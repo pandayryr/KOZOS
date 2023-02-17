@@ -152,7 +152,7 @@ unsigned char serial_recv_byte(int index)
     volatile struct h8_3069f_sci* sci = regs[index].sci;
     unsigned char c;
 
-    while(!serial_is_send_enable(index));
+    while(!serial_is_recv_enable(index));
     c = sci->rdr;                           //シリアルに送信するデータを格納。
     sci->ssr &= ~H8_3069F_SCI_SSR_RDRF;     //受信完了ビットを落とし、次のデータを受信可能にする。
 
