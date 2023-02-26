@@ -2,6 +2,7 @@
 #include "serial.h"
 #include "xmodem.h"
 #include "lib.h"
+#include "elf.h"
 
 static int init(void)
 {
@@ -96,6 +97,10 @@ int main(void)
             putxval(size, 0);
             puts("\n");
             dump(loadbuf, size);
+        }
+        else if(!strcmp(buf, "run"))
+        {
+            elf_load(loadbuf);  //メモリ上に展開
         }
         else
         {
