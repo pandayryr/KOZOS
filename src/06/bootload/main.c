@@ -65,6 +65,8 @@ int main(void)
     static long size = -1;
     static unsigned char* loadbuf = NULL;
     extern int buffer_start;    //リンカ・スクリプトで指定する、受信したファイルを格納するバッファ領域
+    char* entry_point;
+    void (*f)(void);
 
     init();
 
@@ -100,7 +102,22 @@ int main(void)
         }
         else if(!strcmp(buf, "run"))
         {
-            elf_load(loadbuf);  //メモリ上に展開
+            entry_point = elf_load(loadbuf);  //メモリ上に展開
+            if(entry_point == NULL)
+            {
+                puts("run error!\n");
+            }
+            else
+            {
+                puts("starting from entry point: ");
+                putxval((unsigned long)entry_point, 0);
+                puts("\n");
+
+                f = (void (*)(void))entry_point;
+                f();
+
+                puts("KOZOS finished.\n");      //普通は戻ってこない
+            }
         }
         else
         {
